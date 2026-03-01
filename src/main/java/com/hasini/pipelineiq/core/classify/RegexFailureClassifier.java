@@ -37,7 +37,7 @@ public class RegexFailureClassifier implements FailureClassifier {
             new FailureSignature(FailureCategory.TEST_FAILURE, List.of(
                     Pattern.compile("\\[ERROR\\] Tests run:.*, Failures:.*, Errors:.*, Skipped:.*", Pattern.DOTALL),
                     Pattern.compile("> Task :.* FAILED", Pattern.DOTALL),
-                    Pattern.compile("\\\\\\\\\\[ERROR\\\\\\\\] Failures:.*", Pattern.DOTALL),
+                    Pattern.compile("\\[ERROR\\] Failures:.*", Pattern.DOTALL),
                     Pattern.compile("Tests run:.*FAILURE", Pattern.DOTALL)
             )),
             new FailureSignature(FailureCategory.DEPENDENCY_RESOLUTION, List.of(
