@@ -11,7 +11,7 @@ import java.time.Instant;
  * @param suggestion
  */
 public record AnalysisResult(
-        FailureCategory category, // Your Enum
+        FailureCategory category, // Failure type
         String tool,              // e.g., "Maven", "Gradle"
         String rawSnippet,        // The isolated "Hot Zone" from the logs
         String explanation,       // The "Why" from the LLM

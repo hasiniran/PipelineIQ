@@ -9,6 +9,7 @@ public enum FailureCategory {
     DEPENDENCY_RESOLUTION("Could not download or find required libraries."),
     INFRASTRUCTURE_TIMEOUT("The CI runner timed out or lost connection."),
     LINT_CHECK_FAILURE("Code style or static analysis rules were violated."),
+    BUILD_FAILURE("General build or execution failure."),
     UNKNOWN("The cause of failure could not be determined deterministically.");
 
     private final String description;
