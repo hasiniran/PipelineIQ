@@ -12,55 +12,69 @@ import java.util.regex.Pattern;
 @Primary
 public class RegexFailureClassifier implements FailureClassifier {
 
+    // compile helper applies CASE_INSENSITIVE and DOTALL per request
+    private static Pattern compile(String regex) {
+        return Pattern.compile(regex, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    }
+
     private record FailureSignature(FailureCategory category, List<Pattern> patterns) {
         private FailureSignature {
             Objects.requireNonNull(category, "FailureCategory cannot be null");
             Objects.requireNonNull(patterns, "Patterns list cannot be null");
         }
 
-        boolean matches(String logSnippet) {
-            return patterns.stream().anyMatch(pattern -> pattern.matcher(logSnippet).find());
+        boolean matches(String normalizedSnippet) {
+            return patterns.stream().anyMatch(pattern -> pattern.matcher(normalizedSnippet).find());
         }
     }
 
     private static final List<FailureSignature> SIGNATURES = List.of(
             new FailureSignature(FailureCategory.INFRASTRUCTURE_TIMEOUT, List.of(
-                    Pattern.compile("The build step-up timed out"),
-                    Pattern.compile("Exit code 137")
+                    // use word boundaries to avoid partial matches
+                    compile("\\b(the\\s+)?build\\b.*\\btimed\\s*out\\b"),
+                    compile("\\bexit\\s*code\\s*137\\b")
             )),
             new FailureSignature(FailureCategory.COMPILATION_ERROR, List.of(
-                    Pattern.compile("\\[ERROR\\] COMPILATION ERROR :", Pattern.DOTALL),
-                    Pattern.compile("ERROR\\] Failed to execute goal org\\.apache\\.maven\\.plugins:maven-compiler-plugin", Pattern.DOTALL),
-                    Pattern.compile("FAILURE: Build failed with an exception\\.", Pattern.DOTALL),
-                    Pattern.compile("Compilation failed", Pattern.DOTALL)
+                    compile("\\bcompilation\\s*error\\b"),
+                    compile("\\berror\\]\\s*failed\\s*to\\s*execute\\s*goal\\b.*maven-compiler-plugin"),
+                    compile("\\bfailure\\s*:\\s*build\\s*failed\\s*with\\s*an\\s*exception\\.?"),
+                    compile("\\bcompilation\\s*failed\\b"),
+                    compile(".+?\\.java:\\d+:\\s*error:")
             )),
             new FailureSignature(FailureCategory.TEST_FAILURE, List.of(
-                    Pattern.compile("\\[ERROR\\] Tests run:.*, Failures:.*, Errors:.*, Skipped:.*", Pattern.DOTALL),
-                    Pattern.compile("> Task :.* FAILED", Pattern.DOTALL),
-                    Pattern.compile("\\[ERROR\\] Failures:.*", Pattern.DOTALL),
-                    Pattern.compile("Tests run:.*FAILURE", Pattern.DOTALL)
+                    // Maven/TestNG/JUnit summary lines
+                    compile("\\btests\\s*run\\s*[:]?\\s*\\d+\\s*,\\s*failures\\s*[:]?\\s*\\d+\\b"),
+                    // Gradle style: "> Task :app:test FAILED" or similar
+                    compile("\\btask\\b.*\\btest\\b.*\\bfailed\\b"),
+                    compile("\\bfailures\\s*[:]?\\s*\\d+\\b")
             )),
             new FailureSignature(FailureCategory.DEPENDENCY_RESOLUTION, List.of(
-                    Pattern.compile("Could not resolve dependencies", Pattern.DOTALL),
-                    Pattern.compile("Could not find artifact", Pattern.DOTALL),
-                    Pattern.compile("\\[ERROR\\] Failed to execute goal org\\.apache\\.maven\\.plugins:maven-dependency-plugin", Pattern.DOTALL),
-                    Pattern.compile("Could not resolve all files for configuration", Pattern.DOTALL),
-                    Pattern.compile("Failed to resolve dependencies", Pattern.DOTALL)
+                    compile("\\bcould\\s*not\\s*resolve\\b"),
+                    compile("\\bcould\\s*not\\s*find\\s*artifact\\b"),
+                    compile("\\bfailed\\s*to\\s*execute\\s*goal\\b.*maven-dependency-plugin"),
+                    compile("\\bcould\\s*not\\s*resolve\\s*all\\s*files\\s*for\\s*configuration\\b"),
+                    compile("\\bfailed\\s*to\\s*resolve\\s*dependencies\\b"),
+                    compile("\\bfailed\\s*to\\s*collect\\s*dependencies\\b")
             )),
             new FailureSignature(FailureCategory.BUILD_FAILURE, List.of(
-                    Pattern.compile("BUILD FAILURE", Pattern.DOTALL),
-                    Pattern.compile("BUILD FAILED", Pattern.DOTALL)
+                    compile("\\bbuild\\s*failure\\b"),
+                    compile("\\bbuild\\s*failed\\b")
             ))
     );
 
     @Override
     public FailureCategory classify(String logSnippet) {
-        if (logSnippet == null || logSnippet.isEmpty()) {
+        if (logSnippet == null || logSnippet.isBlank()) {
+            return FailureCategory.UNKNOWN;
+        }
+
+        String normalizedSnippet = logSnippet.trim().toLowerCase().replaceAll("[\\s\\t]+", " ");
+        if (normalizedSnippet.isBlank()) {
             return FailureCategory.UNKNOWN;
         }
 
         return SIGNATURES.stream()
-                .filter(signature -> signature.matches(logSnippet))
+                .filter(signature -> signature.matches(normalizedSnippet))
                 .map(signature -> signature.category)
                 .findFirst()
                 .orElse(FailureCategory.UNKNOWN);
