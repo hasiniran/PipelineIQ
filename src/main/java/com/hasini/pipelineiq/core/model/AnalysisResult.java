@@ -21,7 +21,10 @@ public record AnalysisResult(
     /**
      * Factory method to create an initial result before AI enrichment.
      */
-    public static AnalysisResult initial(FailureCategory category, String tool, String snippet) {
-        return new AnalysisResult(category, tool, snippet, "Pending...", "Pending...", Instant.now());
+    public static AnalysisResult initial(FailureCategory category, String tool, LogSnippet snippet) {
+        if (snippet == null || snippet.rawContent() == null) {
+            throw new IllegalArgumentException("LogSnippet and its rawContent cannot be null");
+        }
+        return new AnalysisResult(category, tool, snippet.rawContent(), "Pending...", "Pending...", Instant.now());
     }
 }

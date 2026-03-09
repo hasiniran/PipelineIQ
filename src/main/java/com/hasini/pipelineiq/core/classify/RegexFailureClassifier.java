@@ -1,6 +1,7 @@
 package com.hasini.pipelineiq.core.classify;
 
 import com.hasini.pipelineiq.core.model.FailureCategory;
+import com.hasini.pipelineiq.core.model.LogSnippet;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -8,6 +9,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+/**
+ * Classifies pipeline failures based on regex pattern matching.
+ * Uses the pre-normalized content from LogSnippet for consistent pattern matching.
+ */
 @Component
 @Primary
 public class RegexFailureClassifier implements FailureClassifier {
@@ -63,13 +68,13 @@ public class RegexFailureClassifier implements FailureClassifier {
     );
 
     @Override
-    public FailureCategory classify(String logSnippet) {
-        if (logSnippet == null || logSnippet.isBlank()) {
+    public FailureCategory classify(LogSnippet logSnippet) {
+        if (logSnippet == null) {
             return FailureCategory.UNKNOWN;
         }
 
-        String normalizedSnippet = logSnippet.trim().toLowerCase().replaceAll("[\\s\\t]+", " ");
-        if (normalizedSnippet.isBlank()) {
+        String normalizedSnippet = logSnippet.getNormalizedString();
+        if (normalizedSnippet == null || normalizedSnippet.isBlank()) {
             return FailureCategory.UNKNOWN;
         }
 

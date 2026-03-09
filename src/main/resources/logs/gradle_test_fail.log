@@ -1,0 +1,9 @@
+> Task :app:test FAILED
+
+com.hasini.pipelineiq.core.classify.RegexFailureClassifierTest > testClassification() FAILED
+    org.opentest4j.AssertionFailedError:
+    expected: <TEST_FAILURE> but was: <UNKNOWN>
+        at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+        at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+
+15 tests completed, 1 failed

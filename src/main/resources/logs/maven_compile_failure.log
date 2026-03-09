@@ -1,0 +1,9 @@
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR :
+[INFO] -------------------------------------------------------------
+[ERROR] /Users/hasini/PipelineIQ/src/main/java/com/hasini/core/classify/RegexFailureClassifier.java:[45,22] error: cannot find symbol
+  symbol:   class FailureCategory
+  location: class RegexFailureClassifier
+[INFO] 1 error
+[INFO] -------------------------------------------------------------
+[INFO] BUILD FAILURE

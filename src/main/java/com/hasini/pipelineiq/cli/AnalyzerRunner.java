@@ -3,6 +3,7 @@ package com.hasini.pipelineiq.cli;
 import com.hasini.pipelineiq.core.classify.FailureClassifier;
 import com.hasini.pipelineiq.core.model.AnalysisResult;
 import com.hasini.pipelineiq.core.model.FailureCategory;
+import com.hasini.pipelineiq.core.model.LogSnippet;
 import com.hasini.pipelineiq.core.parse.LogParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -30,7 +31,7 @@ public class AnalyzerRunner implements CommandLineRunner {
         }
 
         Path path = Paths.get(args[0]);
-        String errorSnippet = logParser.extractErrorSnippet(path);
+        LogSnippet errorSnippet = logParser.extractErrorSnippet(path);
         FailureCategory failure = classifier.classify(errorSnippet);
         AnalysisResult result = AnalysisResult.initial(failure,"tool",errorSnippet);
         System.out.println("Analysis Done: "+ result);
