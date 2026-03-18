@@ -52,32 +52,34 @@ public class SimpleLogParser implements LogParser {
         }
 
         try (Stream<String> lines = Files.lines(logLocation)) {
-            Deque<String> window = new ArrayDeque<>();
+            Deque<String> beforeWindow = new ArrayDeque<>();
             var iterator = lines.iterator();
 
             while (iterator.hasNext()) {
                 String line = iterator.next();
-                window.addLast(line);
+                beforeWindow.addLast(line);
 
                 // Maintain window size for lines before match using O(1) removeFirst
-                if (window.size() > LINES_BEFORE + 1) {
-                    window.removeFirst();
+                if (beforeWindow.size() > LINES_BEFORE + 1) {
+                    beforeWindow.removeFirst();
                 }
 
                 if (errorPattern.matcher(line).find()) {
                     logger.debug("Error pattern matched in line: {}", line);
-                    // Collect subsequent lines after error
+                    // Start constructing the snippet with all lines from beforeWindow (full context)
+                    ArrayDeque<String> snippetLines = new ArrayDeque<>(beforeWindow);
+                    // Collect subsequent lines after error (without truncation)
                     for (int i = 0; i < LINES_AFTER && iterator.hasNext(); i++) {
-                        window.addLast(iterator.next());
+                        snippetLines.addLast(iterator.next());
                     }
-                    String snippet = String.join("\n", window);
+                    String snippet = String.join("\n", snippetLines);
                     logger.debug("Extracted error snippet of {} characters", snippet.length());
                     return Optional.of(new LogSnippet(snippet));
                 }
             }
 
             // If no error found, return the last lines captured in the window (fallback)
-            String snippet = String.join("\n", window);
+            String snippet = String.join("\n", beforeWindow);
             logger.debug("No error pattern matched, returning fallback snippet of {} characters", snippet.length());
             return Optional.of(new LogSnippet(snippet));
         } catch (IOException e) {
