@@ -69,7 +69,7 @@ public class RegexFailureClassifier implements FailureClassifier {
 
     @Override
     public FailureCategory classify(LogSnippet logSnippet) {
-        if (logSnippet == null) {
+        if (logSnippet == null || logSnippet == LogSnippet.EMPTY) {
             return FailureCategory.UNKNOWN;
         }
 

@@ -4,6 +4,7 @@ import com.hasini.pipelineiq.core.model.LogSnippet;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Optional;
 
 
 public interface LogParser {
@@ -15,6 +16,6 @@ public interface LogParser {
      * @return A String containing the "hot zone" (the error and surrounding lines)
      * @throws LogParsingException if the file is unreadable or context can't be found
      */
-    LogSnippet extractErrorSnippet(Path logLocation) throws IOException;
+    Optional<LogSnippet> extractErrorSnippet(Path logLocation) throws IOException;
 
 }

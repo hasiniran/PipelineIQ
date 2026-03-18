@@ -7,11 +7,11 @@ import com.hasini.pipelineiq.core.model.LogSnippet;
 import com.hasini.pipelineiq.core.parse.LogParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -31,9 +31,9 @@ public class AnalyzerRunner implements CommandLineRunner {
         }
 
         Path path = Paths.get(args[0]);
-        LogSnippet errorSnippet = logParser.extractErrorSnippet(path);
-        FailureCategory failure = classifier.classify(errorSnippet);
-        AnalysisResult result = AnalysisResult.initial(failure,"tool",errorSnippet);
+        Optional<LogSnippet> errorSnippet = logParser.extractErrorSnippet(path);
+        FailureCategory failure = classifier.classify(errorSnippet.orElse(null));
+        AnalysisResult result = AnalysisResult.initial(failure,"tool", errorSnippet.orElse(null));
         System.out.println("Analysis Done: "+ result);
 
     }

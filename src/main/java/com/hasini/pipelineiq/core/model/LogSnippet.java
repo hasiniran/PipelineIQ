@@ -6,12 +6,11 @@ import java.util.Objects;
 public record LogSnippet(
     String rawContent
 ) {
+    public static final LogSnippet EMPTY=new LogSnippet("EMPTY_LOG_SIGNAL");
     public LogSnippet {
+
         Objects.requireNonNull(rawContent, "rawContent cannot be null");
 
-        if (rawContent.isBlank()) {
-            throw new IllegalArgumentException("rawContent cannot be blank");
-        }
 
     }
 

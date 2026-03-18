@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -44,10 +45,10 @@ public class SimpleLogParser implements LogParser {
     }
 
     @Override
-    public LogSnippet extractErrorSnippet(Path logLocation) throws IOException {
+    public Optional<LogSnippet> extractErrorSnippet(Path logLocation) throws IOException {
         if (logLocation == null) {
             logger.warn("logLocation is null, returning empty string");
-            return new LogSnippet("");
+            return Optional.empty();    
         }
 
         try (Stream<String> lines = Files.lines(logLocation)) {
@@ -71,14 +72,14 @@ public class SimpleLogParser implements LogParser {
                     }
                     String snippet = String.join("\n", window);
                     logger.debug("Extracted error snippet of {} characters", snippet.length());
-                    return new LogSnippet(snippet);
+                    return Optional.of(new LogSnippet(snippet));
                 }
             }
 
             // If no error found, return the last lines captured in the window (fallback)
             String snippet = String.join("\n", window);
             logger.debug("No error pattern matched, returning fallback snippet of {} characters", snippet.length());
-            return new LogSnippet(snippet);
+            return Optional.of(new LogSnippet(snippet));
         } catch (IOException e) {
             logger.error("Failed to read log file: {}", logLocation, e);
             throw e;
