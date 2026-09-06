@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 public class SimpleFailureClassifier implements FailureClassifier{
     @Override
     public FailureCategory classify(LogSnippet logSnippet) {
+        if (logSnippet == null) {
+            return FailureCategory.UNKNOWN;
+        }
         return FailureCategory.TEST_FAILURE;
     }
 }

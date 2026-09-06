@@ -69,11 +69,11 @@ public class RegexFailureClassifier implements FailureClassifier {
 
     @Override
     public FailureCategory classify(LogSnippet logSnippet) {
-        if (logSnippet == null || logSnippet == LogSnippet.EMPTY) {
+        if (logSnippet == null) {
             return FailureCategory.UNKNOWN;
         }
 
-        String normalizedSnippet = logSnippet.getNormalizedString();
+        var normalizedSnippet = logSnippet.getNormalizedString();
         if (normalizedSnippet == null || normalizedSnippet.isBlank()) {
             return FailureCategory.UNKNOWN;
         }

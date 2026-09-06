@@ -2,6 +2,7 @@ package com.hasini.pipelineiq.core.classify;
 
 import com.hasini.pipelineiq.core.model.FailureCategory;
 import com.hasini.pipelineiq.core.model.LogSnippet;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -14,14 +15,18 @@ class RegexFailureClassifierTest {
 
     private final RegexFailureClassifier classifier = new RegexFailureClassifier();
 
+    @Test
+    void classify_nullSnippet_returnsUnknown() {
+        assertThat(classifier.classify(null)).isEqualTo(FailureCategory.UNKNOWN);
+    }
+
     @ParameterizedTest(name = "{index} => {1}")
     @MethodSource("provideLogSnippets")
     void classify_ShouldReturnCorrectCategory(String logContent, FailureCategory expectedCategory) {
-        LogSnippet snippet = null;
-        if (logContent != null && !logContent.isBlank()) {
-            snippet = new LogSnippet(logContent);
-        }
-        
+        LogSnippet snippet = (logContent == null || logContent.isBlank())
+                ? null
+                : new LogSnippet(logContent);
+
         FailureCategory result = classifier.classify(snippet);
         assertThat(result)
                 .as("Checking category for log: %s", logContent)
