@@ -1,6 +1,5 @@
 package com.hasini.pipelineiq.core.parse;
 
-import com.hasini.pipelineiq.core.model.FailureCategory;
 import com.hasini.pipelineiq.core.model.LogSnippet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,14 +46,23 @@ class SimpleLogParserTest {
     }
 
     @Test
-    void extractErrorSnippet_emptyFile_returnsEmptySnippet() throws IOException {
+    void extractErrorSnippet_emptyFile_returnsEmptyOptional() throws IOException {
         Path emptyFile = tempDir.resolve("empty.log");
         Files.write(emptyFile, List.of());
 
-        LogSnippet result = parser.extractErrorSnippet(emptyFile)
-                .orElseThrow(() -> new AssertionError("Expected snippet to be present"));
+        Optional<LogSnippet> result = parser.extractErrorSnippet(emptyFile);
 
-        assertThat(result.rawContent()).isEqualTo("");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void extractErrorSnippet_whitespaceOnlyFile_returnsEmptyOptional() throws IOException {
+        Path whitespaceFile = tempDir.resolve("whitespace.log");
+        Files.write(whitespaceFile, List.of("   ", "\t"));
+
+        Optional<LogSnippet> result = parser.extractErrorSnippet(whitespaceFile);
+
+        assertThat(result).isEmpty();
     }
 
     @Test

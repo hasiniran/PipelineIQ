@@ -47,8 +47,8 @@ public class SimpleLogParser implements LogParser {
     @Override
     public Optional<LogSnippet> extractErrorSnippet(Path logLocation) throws IOException {
         if (logLocation == null) {
-            logger.warn("logLocation is null, returning empty string");
-            return Optional.empty();    
+            logger.warn("logLocation is null, returning empty");
+            return Optional.empty();
         }
 
         try (Stream<String> lines = Files.lines(logLocation)) {
@@ -56,7 +56,7 @@ public class SimpleLogParser implements LogParser {
             var iterator = lines.iterator();
 
             while (iterator.hasNext()) {
-                String line = iterator.next();
+                var line = iterator.next();
                 beforeWindow.addLast(line);
 
                 // Maintain window size for lines before match using O(1) removeFirst
@@ -67,24 +67,29 @@ public class SimpleLogParser implements LogParser {
                 if (errorPattern.matcher(line).find()) {
                     logger.debug("Error pattern matched in line: {}", line);
                     // Start constructing the snippet with all lines from beforeWindow (full context)
-                    ArrayDeque<String> snippetLines = new ArrayDeque<>(beforeWindow);
+                    var snippetLines = new ArrayDeque<>(beforeWindow);
                     // Collect subsequent lines after error (without truncation)
                     for (int i = 0; i < LINES_AFTER && iterator.hasNext(); i++) {
                         snippetLines.addLast(iterator.next());
                     }
-                    String snippet = String.join("\n", snippetLines);
-                    logger.debug("Extracted error snippet of {} characters", snippet.length());
-                    return Optional.of(new LogSnippet(snippet));
+                    return toSnippet(String.join("\n", snippetLines));
                 }
             }
 
             // If no error found, return the last lines captured in the window (fallback)
-            String snippet = String.join("\n", beforeWindow);
-            logger.debug("No error pattern matched, returning fallback snippet of {} characters", snippet.length());
-            return Optional.of(new LogSnippet(snippet));
+            return toSnippet(String.join("\n", beforeWindow));
         } catch (IOException e) {
             logger.error("Failed to read log file: {}", logLocation, e);
             throw e;
         }
+    }
+
+    private Optional<LogSnippet> toSnippet(String snippet) {
+        if (snippet == null || snippet.isBlank()) {
+            logger.debug("Extracted content cannot form a valid snippet");
+            return Optional.empty();
+        }
+        logger.debug("Extracted error snippet of {} characters", snippet.length());
+        return Optional.of(new LogSnippet(snippet));
     }
 }
