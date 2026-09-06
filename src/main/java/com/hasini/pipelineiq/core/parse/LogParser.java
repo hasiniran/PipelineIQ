@@ -13,8 +13,9 @@ public interface LogParser {
      * Scans the log source to extract the relevant failure context.
      *
      * @param logLocation The path to the log file (or a URI for remote logs)
-     * @return A String containing the "hot zone" (the error and surrounding lines)
-     * @throws LogParsingException if the file is unreadable or context can't be found
+     * @return the error "hot zone" as a {@link LogSnippet}, or {@link Optional#empty()} when
+     *         {@code logLocation} is null or the extracted content cannot form a valid snippet
+     * @throws IOException if the file is unreadable
      */
     Optional<LogSnippet> extractErrorSnippet(Path logLocation) throws IOException;
 

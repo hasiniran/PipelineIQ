@@ -32,9 +32,15 @@ public class AnalyzerRunner implements CommandLineRunner {
 
         Path path = Paths.get(args[0]);
         Optional<LogSnippet> errorSnippet = logParser.extractErrorSnippet(path);
-        FailureCategory failure = classifier.classify(errorSnippet.orElse(null));
-        AnalysisResult result = AnalysisResult.initial(failure,"tool", errorSnippet.orElse(null));
-        System.out.println("Analysis Done: "+ result);
+        FailureCategory failure = errorSnippet
+                .map(classifier::classify)
+                .orElse(FailureCategory.UNKNOWN);
+        if (errorSnippet.isEmpty()) {
+            System.out.println("Analysis Done: " + failure);
+            return;
+        }
+        AnalysisResult result = AnalysisResult.initial(failure, "tool", errorSnippet.orElseThrow());
+        System.out.println("Analysis Done: " + result);
 
     }
 }
