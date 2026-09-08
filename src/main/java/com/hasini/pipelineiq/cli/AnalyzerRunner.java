@@ -1,46 +1,43 @@
 package com.hasini.pipelineiq.cli;
 
-import com.hasini.pipelineiq.core.classify.FailureClassifier;
-import com.hasini.pipelineiq.core.model.AnalysisResult;
-import com.hasini.pipelineiq.core.model.FailureCategory;
-import com.hasini.pipelineiq.core.model.LogSnippet;
-import com.hasini.pipelineiq.core.parse.LogParser;
-import lombok.RequiredArgsConstructor;
+import com.hasini.pipelineiq.core.model.PipelineReport;
+import com.hasini.pipelineiq.core.service.PipelineAnalysisService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 
+/**
+ * CLI entry point for executing log analysis from the terminal.
+ */
 @Component
-@RequiredArgsConstructor
 public class AnalyzerRunner implements CommandLineRunner {
 
-    private final LogParser logParser;
-    private final FailureClassifier classifier;
+    private final PipelineAnalysisService pipelineAnalysisService;
 
+    public AnalyzerRunner(PipelineAnalysisService pipelineAnalysisService) {
+        this.pipelineAnalysisService = pipelineAnalysisService;
+    }
 
     @Override
-    public void run(String... args) throws Exception {
-
-        System.out.println("DEBUG: AnalyzerRunner has started!");
-        if(args.length==0){
-            System.out.println("Please enter the path to the log file");
+    public void run(String... args) {
+        if (args.length == 0) {
+            System.out.println("⚠️ Please provide a log file path as a command-line argument.");
             return;
         }
 
-        Path path = Paths.get(args[0]);
-        Optional<LogSnippet> errorSnippet = logParser.extractErrorSnippet(path);
-        FailureCategory failure = errorSnippet
-                .map(classifier::classify)
-                .orElse(FailureCategory.UNKNOWN);
-        if (errorSnippet.isEmpty()) {
-            System.out.println("Analysis Done: " + failure);
-            return;
-        }
-        AnalysisResult result = AnalysisResult.initial(failure, "tool", errorSnippet.orElseThrow());
-        System.out.println("Analysis Done: " + result);
+        Path logPath = Paths.get(args[0]);
+        System.out.println("🔍 Analyzing log file: " + logPath.toAbsolutePath());
 
+        // Delegate the entire workflow to the service
+        PipelineReport report = pipelineAnalysisService.analyze(logPath);
+
+        // Print a clean, human-readable summary
+        System.out.println("\n=== 🎯 PipelineIQ Analysis ===");
+        System.out.println("Category:   " + report.category());
+        System.out.println("Root Cause: " + report.explanation().rootCause());
+        System.out.println("Fix:        " + report.explanation().recommendedFix());
+        System.out.println("================================\n");
     }
 }
