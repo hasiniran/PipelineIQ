@@ -5,6 +5,7 @@ import com.hasini.pipelineiq.core.service.PipelineAnalysisService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -28,6 +29,11 @@ public class AnalyzerRunner implements CommandLineRunner {
         }
 
         Path logPath = Paths.get(args[0]);
+        if (!Files.exists(logPath)) {
+            System.out.println("⚠️ Log file does not exist at path: " + logPath.toAbsolutePath());
+            return;
+        }
+
         System.out.println("🔍 Analyzing log file: " + logPath.toAbsolutePath());
 
         // Delegate the entire workflow to the service
