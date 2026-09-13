@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.ai.chat.client.enabled=false")
 class PipelineiqApplicationTests {
 
 	@MockitoBean
