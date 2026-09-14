@@ -1,0 +1,21 @@
+name: PipelineIQ Live Demo
+
+on:
+  workflow_dispatch: # Allows manual triggering from the GitHub UI
+  push:
+    branches:
+      - main
+
+jobs:
+  analyze-test-log:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Execute PipelineIQ Action
+        uses: ./
+        with:
+          log-path: 'src/main/resources/logs/maven_compile_failure.log'
+          llm-provider: 'openai'
+          api-key: ${{ secrets.OPENAI_API_KEY }}
