@@ -5,9 +5,12 @@ import com.hasini.pipelineiq.core.service.PipelineAnalysisService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 /**
  * CLI entry point for executing log analysis from the terminal.
@@ -38,12 +41,40 @@ public class AnalyzerRunner implements CommandLineRunner {
 
         // Delegate the entire workflow to the service
         PipelineReport report = pipelineAnalysisService.analyze(logPath);
+        writeSummary(report);
+    }
 
-        // Print a clean, human-readable summary
-        System.out.println("\n=== 🎯 PipelineIQ Analysis ===");
-        System.out.println("Category:   " + report.category());
-        System.out.println("Root Cause: " + report.explanation().rootCause());
-        System.out.println("Fix:        " + report.explanation().recommendedFix());
-        System.out.println("================================\n");
+    private void writeSummary(PipelineReport report) {
+        String markdownSummary = buildMarkdownSummary(report);
+        String stepSummaryPath = System.getenv("GITHUB_STEP_SUMMARY");
+
+        if (stepSummaryPath != null && !stepSummaryPath.isBlank()) {
+            try {
+                Path summaryFile = Path.of(stepSummaryPath);
+                Path parent = summaryFile.getParent();
+                if (parent != null) {
+                    Files.createDirectories(parent);
+                }
+                Files.writeString(
+                    summaryFile,
+                    markdownSummary,
+                    StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.APPEND
+                );
+                return;
+            } catch (IOException e) {
+                System.out.println("⚠️ Unable to write GitHub step summary. Falling back to stdout.");
+            }
+        }
+
+        System.out.println(markdownSummary);
+    }
+
+    private String buildMarkdownSummary(PipelineReport report) {
+        return "## PipelineIQ Analysis\n\n"
+            + "-** Category:** " + report.category() + "\n"
+            + "-** Root Cause:** " + report.explanation().rootCause() + "\n"
+            + "-** Fix:** " + report.explanation().recommendedFix() + "\n";
     }
 }
