@@ -16,7 +16,7 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Copy the built .jar file from the Builder stage into this image as app.jar
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/*.jar /app.jar
 
 # Set the ENTRYPOINT to ["java", "-jar", "app.jar"]
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "/app.jar"]
